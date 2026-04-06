@@ -28,7 +28,7 @@ public class Move : MonoBehaviour
     {
         Vector3 joystickVector = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
 
-        Debug.Log("Joystick Vector: " + joystickVector);
+        //Debug.Log("Joystick Vector: " + joystickVector);
 
 
         // Move Vector yap
