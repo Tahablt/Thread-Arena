@@ -239,7 +239,6 @@ public class Character : MonoBehaviour
 
     IEnumerator InvincibilityDuringDash()
     {
-        Collider[] colliders = GetComponentsInChildren<Collider>();
         yield return new WaitForSeconds(dashInvincibilityDuration);
     }
 
@@ -274,13 +273,16 @@ public class Character : MonoBehaviour
         {
             OnFire?.Invoke();
 
-            // SADECE KILIÇ ÝÇÝN GÜNCELLENDÝ
             if (animator != null)
             {
+                // RASTGELE ANÝMASYON SEÇÝMÝ: 0, 1 veya 2 döner. 
+                // Animator'da "AttackIndex" (Int) parametresi oluþturmayý unutma!
+                int randomAttack = Random.Range(0, 4);
+                animator.SetInteger("AttackIndex", randomAttack);
                 animator.SetTrigger("Attack");
             }
 
-            Debug.Log("Kýlýç Sallandý!");
+            Debug.Log("Kýlýç Sallandý! Seçilen Animasyon: " + animator.GetInteger("AttackIndex"));
 
             fireInput = false;
         }

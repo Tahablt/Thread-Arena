@@ -9,11 +9,11 @@ public class Move : MonoBehaviour
      * ++CharaterController move
      * -- Gravity hallet
      * ++ Rotasyon yap
-     * Smooth Rotasyon ekle
-     * Camera Takibi
-     * Dash Mekaniði
+     * ++Smooth Rotasyon ekle
+     * ++Camera Takibi
+     * ++Dash Mekaniði
      * Fire Mekaniði
-     * Animasyonlar (Þu an yapýyoruz!)
+     * ++Animasyonlar (Þu an yapýyoruz!)
      * Particle Effect (Dash, Fire)
      * Sesler (Move, Ambians, Music, Fire, Dash)
      */
