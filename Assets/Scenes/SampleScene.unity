@@ -1546,6 +1546,7 @@ MonoBehaviour:
   joystick: {fileID: 595282648}
   characterController: {fileID: 1545537180}
   speed: 10
+  animator: {fileID: 0}
 --- !u!54 &1545537184
 Rigidbody:
   m_ObjectHideFlags: 0

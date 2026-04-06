@@ -59,7 +59,7 @@ public class Character : MonoBehaviour
     void InitializeComponents()
     {
         characterController = GetComponent<CharacterController>();
-        animator = GetComponent<Animator>();
+        animator = GetComponentInChildren<Animator>();
 
         if (cameraTransform == null)
             cameraTransform = Camera.main.transform;
@@ -104,7 +104,6 @@ public class Character : MonoBehaviour
         {
             joystickInput = new Vector2(movementJoystick.Horizontal, movementJoystick.Vertical);
 
-            // Clamp joystick input to ensure consistent diagonal movement
             if (joystickInput.magnitude > 1f)
                 joystickInput.Normalize();
         }
@@ -114,31 +113,25 @@ public class Character : MonoBehaviour
     {
         if (joystickInput.magnitude > 0.1f)
         {
-            // Convert joystick input to camera-relative movement
             Vector3 forward = cameraTransform.forward;
             Vector3 right = cameraTransform.right;
 
-            // Project onto XZ plane
             forward.y = 0;
             right.y = 0;
 
             forward.Normalize();
             right.Normalize();
 
-            // Calculate movement direction
             moveDirection = (forward * joystickInput.y + right * joystickInput.x).normalized;
 
-            // Rotate character to face movement direction
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
 
-            // Set move vector
             velocity.x = moveDirection.x * currentSpeed;
             velocity.z = moveDirection.z * currentSpeed;
         }
         else
         {
-            // No movement input, slow down gradually
             velocity.x = Mathf.Lerp(velocity.x, 0, Time.deltaTime * 10f);
             velocity.z = Mathf.Lerp(velocity.z, 0, Time.deltaTime * 10f);
         }
@@ -146,23 +139,20 @@ public class Character : MonoBehaviour
 
     void HandleGravity()
     {
-        // Check if grounded
         isGrounded = characterController.isGrounded || CheckGround();
 
         if (isGrounded && velocity.y < 0)
         {
-            velocity.y = -2f; // Small downward force to keep grounded
+            velocity.y = -2f;
         }
         else
         {
-            // Apply gravity
             velocity.y += gravity * Time.deltaTime;
         }
     }
 
     bool CheckGround()
     {
-        // Additional ground check using raycast for better accuracy
         RaycastHit hit;
         Vector3 rayStart = transform.position + Vector3.up * 0.1f;
 
@@ -176,7 +166,6 @@ public class Character : MonoBehaviour
 
     void ApplyMovement()
     {
-        // Move the character
         characterController.Move(velocity * Time.deltaTime);
     }
 
@@ -184,7 +173,6 @@ public class Character : MonoBehaviour
     {
         if (animator != null)
         {
-            // Set animation parameters based on movement
             float speedPercent = joystickInput.magnitude;
             animator.SetFloat("Speed", speedPercent);
             animator.SetBool("IsGrounded", isGrounded);
@@ -198,7 +186,6 @@ public class Character : MonoBehaviour
         {
             canDash = true;
 
-            // Update dash button interactability
             if (dashButton != null)
                 dashButton.interactable = true;
         }
@@ -225,49 +212,35 @@ public class Character : MonoBehaviour
         dashEndTime = Time.time + dashDuration;
         dashCooldownEndTime = Time.time + dashCooldown;
 
-        // Determine dash direction
         if (joystickInput.magnitude > 0.1f)
         {
             dashDirection = moveDirection.normalized;
         }
         else
         {
-            // If no input, dash forward
             dashDirection = transform.forward;
         }
 
-        // Apply dash speed
         velocity.x = dashDirection.x * dashSpeed;
         velocity.z = dashDirection.z * dashSpeed;
 
-        // Make character invincible during dash
         StartCoroutine(InvincibilityDuringDash());
 
-        // Play dash effect
         if (dashEffectPrefab != null)
         {
             Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
         }
 
-        // Disable dash button during dash
         if (dashButton != null)
             dashButton.interactable = false;
 
-        // Invoke events
         OnDashStart?.Invoke();
-
-        Debug.Log("Dash started!");
     }
 
     IEnumerator InvincibilityDuringDash()
     {
-        // Get all colliders and make them ignore collision during dash
         Collider[] colliders = GetComponentsInChildren<Collider>();
-        // Implementation would depend on your specific invincibility system
-
         yield return new WaitForSeconds(dashInvincibilityDuration);
-
-        // Re-enable normal collision
     }
 
     void HandleDash()
@@ -278,12 +251,9 @@ public class Character : MonoBehaviour
         }
         else
         {
-            // Maintain dash direction and speed
             velocity.x = dashDirection.x * dashSpeed;
             velocity.z = dashDirection.z * dashSpeed;
-            velocity.y = 0; // Prevent gravity during dash
-
-            // Optional: Add dash trail or effects here
+            velocity.y = 0;
         }
     }
 
@@ -292,13 +262,10 @@ public class Character : MonoBehaviour
         isDashing = false;
         currentSpeed = moveSpeed;
 
-        // Reset velocity
         velocity.x *= 0.5f;
         velocity.z *= 0.5f;
 
         OnDashEnd?.Invoke();
-
-        Debug.Log("Dash ended!");
     }
 
     void HandleFire()
@@ -307,36 +274,23 @@ public class Character : MonoBehaviour
         {
             OnFire?.Invoke();
 
-            // Implement your firing logic here
-            Debug.Log("Fire!");
+            // SADECE KILIÇ ÝÇÝN GÜNCELLENDÝ
+            if (animator != null)
+            {
+                animator.SetTrigger("Attack");
+            }
 
-            // Reset fire input
+            Debug.Log("Kýlýç Sallandý!");
+
             fireInput = false;
         }
     }
 
-    // Public methods for external use
-    public bool IsDashing()
-    {
-        return isDashing;
-    }
+    public bool IsDashing() { return isDashing; }
+    public bool CanDash() { return canDash; }
+    public Vector3 GetMoveDirection() { return moveDirection; }
+    public float GetMoveSpeed() { return currentSpeed; }
 
-    public bool CanDash()
-    {
-        return canDash;
-    }
-
-    public Vector3 GetMoveDirection()
-    {
-        return moveDirection;
-    }
-
-    public float GetMoveSpeed()
-    {
-        return currentSpeed;
-    }
-
-    // Editor validation
     void OnValidate()
     {
         if (dashDuration >= dashCooldown)
