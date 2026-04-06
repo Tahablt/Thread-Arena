@@ -26,6 +26,11 @@ public class Move : MonoBehaviour
 
     private void Update()
     {
+        if(joystick.Horizontal == 0 && joystick.Vertical == 0)
+        {
+            return;
+        }
+
         Vector3 joystickVector = new Vector3(joystick.Horizontal, 0, joystick.Vertical);
 
         //Debug.Log("Joystick Vector: " + joystickVector);
