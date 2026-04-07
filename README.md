@@ -1,6 +1,6 @@
 # Unity Arcade / Casual Game 
 
-Bu proje, Karabük Üniversitesi Oyun Geliştirme ve Programlama bölümünde geliştirilen bir **Unity Arcade / Casual Game prototipi**dir. Amacımız temel oyun mekaniklerini uygulayarak pratik kazanmak ve oyun geliştirme sürecini öğrenmektir.
+Bu proje, tek başıma geliştirdiğim bir Unity Arcade / Casual Game prototipidir. Amacım fizik tabanlı mobil oyun mekaniklerini uygulamak, oyun kontrollerini ve kullanıcı arayüzünü tasarlayarak oyun geliştirme becerilerimi geliştirmektir.
 
 ## Features
 
