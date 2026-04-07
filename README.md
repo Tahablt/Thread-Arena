@@ -4,9 +4,9 @@ Bu proje, Karabük Üniversitesi Oyun Geliştirme ve Programlama bölümünde ge
 
 ## Features
 
-- Player movement system (WASD)
-- Sprint mechanic (Shift ile koşma)
-- Camera control (Mouse look)
+- Player movement system (Joystick)
+- Sprint mechanic (Dash Button)
+- Camera control (Follow Camera/Cinemachine)
 - FPS counter UI
 - Animator integration (Character animations)
 
