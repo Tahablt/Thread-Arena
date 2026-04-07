@@ -277,12 +277,12 @@ public class Character : MonoBehaviour
             {
                 // RASTGELE ANÝMASYON SEÇÝMÝ: 0, 1 veya 2 döner. 
                 // Animator'da "AttackIndex" (Int) parametresi oluþturmayý unutma!
-                int randomAttack = Random.Range(0, 4);
+                int randomAttack = Random.Range(0, 3);
                 animator.SetInteger("AttackIndex", randomAttack);
                 animator.SetTrigger("Attack");
             }
 
-            Debug.Log("Kýlýç Sallandý! Seçilen Animasyon: " + animator.GetInteger("AttackIndex"));
+            
 
             fireInput = false;
         }
