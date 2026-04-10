@@ -1,98 +1,118 @@
 using UnityEngine;
+using System.Collections;
 
 public class Enemy : MonoBehaviour
 {
-    [Header("Düþman Ayarlarý")]
+    [Header("Mob Ayarlarý")]
     public float maxHealth = 100f;
-    public float moveSpeed = 3f;  // Düþmanýn hareket hýzý
+    public float moveSpeed = 3f;
+    public float damageToPlayer = 10f;
     private float currentHealth;
 
-    private bool isDead = false; // ÖNEMLÝ: Çift vuruþ bug'ýný engelleyecek kilit
+    private bool isDead = false;
+    private bool isStunned = false;
 
     private Transform player;
     private WaveManager waveManager;
+    private Animator anim;
+
+    // Mobun yere bastýðý orijinal yüksekliði (Üst üste binmeyi engeller)
+    private float defaultY;
 
     private void Awake()
     {
-        // Sahnedeki oyuncuyu "Player" tag'i ile buluyoruz.
+        // Oyuncuyu, dalga yöneticisini ve animatörü bul
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-        {
-            player = playerObj.transform;
-        }
-        else
-        {
-            Debug.LogWarning("Sahnede 'Player' tagine sahip bir obje bulunamadý!");
-        }
+        if (playerObj != null) player = playerObj.transform;
 
-        // Dalga yöneticisini buluyoruz
         waveManager = FindFirstObjectByType<WaveManager>();
+        anim = GetComponentInChildren<Animator>();
     }
 
-    // Bu kod düþman havuzdan her çekildiðinde (görünür olduðunda) otomatik çalýþýr
+    // Mob havuzdan her doðduðunda çalýþýr
     private void OnEnable()
     {
-        currentHealth = maxHealth; // Caný fulle ki ölü doðmasýn
-        isDead = false; // Havuzdan çýkýnca ölüm kilidini sýfýrla ki tekrar hasar alabilsin
+        currentHealth = maxHealth;
+        isDead = false;
+        isStunned = false;
+
+        if (anim != null)
+        {
+            anim.Rebind();
+            anim.Update(0f);
+        }
+
+        // Doðduðu anki yüksekliðini betona çivilemek için kaydet
+        defaultY = transform.position.y;
     }
 
     private void Update()
     {
-        // Oyuncu sahnede varsa ona doðru hareket et
-        if (player != null && !isDead)
+        // Öldüyse, sersemlediyse veya oyuncu yoksa kýmýldama
+        if (player == null || isDead || isStunned) return;
+
+        // YÜKSEKLÝK BUG'I ÇÖZÜMÜ: Oyuncunun kafasýna deðil, ayaklarýna (kendi hizasýna) git
+        Vector3 targetPos = new Vector3(player.position.x, transform.position.y, player.position.z);
+        float distance = Vector3.Distance(transform.position, targetPos);
+
+        // Yönünü oyuncuya dön
+        Vector3 direction = targetPos - transform.position;
+        if (direction != Vector3.zero) transform.rotation = Quaternion.LookRotation(direction);
+
+        // Mesafeye göre yürü veya dur
+        if (distance > 1.2f)
         {
-            // Dümdüz oyuncuya doðru ilerler
-            transform.position = Vector3.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
-
-            // 3D OYUN ÝÇÝN YÜZÜNÜ OYUNCUYA DÖNME KODU
-            Vector3 direction = player.position - transform.position;
-            direction.y = 0; // Zombi yukarý/aþaðý eðilmesin, sadece saða sola dönsün diye Y'yi sýfýrlýyoruz
-
-            if (direction != Vector3.zero)
-            {
-                transform.rotation = Quaternion.LookRotation(direction);
-            }
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
+            if (anim != null) anim.SetBool("isMoving", true);
         }
+        else
+        {
+            if (anim != null) anim.SetBool("isMoving", false);
+            // Karakter dibindeyse burada oyuncuya hasar verme kodunu tetikleyebilirsin
+        }
+
+        // YIÐILMA BUG'I ÇÖZÜMÜ: Fizik motoru havaya itmeye çalýþsa bile zorla yere indir
+        transform.position = new Vector3(transform.position.x, defaultY, transform.position.z);
     }
 
-    // Karakterin mermisi veya kýlýcý bu fonksiyonu tetikleyecek
     public void TakeDamage(float damage)
     {
-        // Eðer zombi zaten öldüyse (ama daha havuza gidemeden kýlýç bir daha çarptýysa) hasarý umursama
         if (isDead) return;
 
         currentHealth -= damage;
 
+        // Darbe yeme animasyonu ve anlýk sersemleme
+        if (anim != null) anim.SetTrigger("Hit");
+        StartCoroutine(HitStun());
+
+        // Caný bittiyse öl
         if (currentHealth <= 0)
         {
-            isDead = true; // Zombiyi ölü olarak iþaretle ki bir daha hasar yemesin
+            isDead = true;
             Die();
         }
     }
 
+    // Kýlýç yiyince yarým saniyelik duraksama efekti
+    IEnumerator HitStun()
+    {
+        isStunned = true;
+        yield return new WaitForSeconds(0.4f);
+        isStunned = false;
+    }
+
     private void Die()
     {
-        Debug.Log("1 - Düþman öldü! Havuza gitmeye çalýþýyor...");
+        if (anim != null) anim.SetTrigger("Die");
+        if (waveManager != null) waveManager.OnEnemyDefeated();
 
-        if (waveManager != null)
-        {
-            waveManager.OnEnemyDefeated();
-        }
-        else
-        {
-            Debug.LogWarning("DÝKKAT: WaveManager bulunamadý!");
-        }
+        // Ölüm animasyonunu izlemek için 2 saniye yerde bekle, sonra havuza dön
+        Invoke("ReturnToPool", 2f);
+    }
 
-        // Havuz sahnede var mý diye kontrol ediyoruz
-        if (EnemyPool.Instance != null)
-        {
-            Debug.Log("2 - Havuz bulundu! Düþman baþarýyla havuza geri gönderiliyor.");
-            EnemyPool.Instance.ReturnEnemy(this.gameObject);
-        }
-        else
-        {
-            Debug.LogError("3 - KRÝTÝK HATA: Sahnede EnemyPool scripti bulunamadý! Düþman havuza gidemediði için kalýcý olarak siliniyor (Destroy).");
-            Destroy(gameObject);
-        }
+    private void ReturnToPool()
+    {
+        if (EnemyPool.Instance != null) EnemyPool.Instance.ReturnEnemy(this.gameObject);
+        else Destroy(gameObject);
     }
 }
