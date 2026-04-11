@@ -1,50 +1,61 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class PoolItem
+{
+    public EnemyType enemyType; // AÇILIR MENÜ
+    public GameObject prefab;
+    public int poolSize = 20;
+}
+
 public class EnemyPool : MonoBehaviour
 {
-    public static EnemyPool Instance; // Her yerden kolayca ulaþabilmek için Singleton yapýyoruz
+    public static EnemyPool Instance;
 
-    [Header("Pool Ayarlarý")]
-    public GameObject enemyPrefab; // Zombi/Mob prefabýn
-    public int poolSize = 50; // Baþlangýçta kaç tane üretileceði
+    public List<PoolItem> poolItems;
 
-    private Queue<GameObject> pool = new Queue<GameObject>();
+    // Arka plan sözlüðümüz de artýk yazýyla deðil, Enum (Liste) ile çalýþýyor
+    private Dictionary<EnemyType, Queue<GameObject>> poolDictionary;
 
     private void Awake()
     {
         Instance = this;
+        poolDictionary = new Dictionary<EnemyType, Queue<GameObject>>();
 
-        // Oyun baþlarken havuzu düþmanlarla doldur
-        for (int i = 0; i < poolSize; i++)
+        foreach (var item in poolItems)
         {
-            GameObject obj = Instantiate(enemyPrefab);
-            obj.SetActive(false); // Sahnede görünmesinler
-            pool.Enqueue(obj); // Sýraya ekle
+            Queue<GameObject> objectPool = new Queue<GameObject>();
+
+            for (int i = 0; i < item.poolSize; i++)
+            {
+                GameObject obj = Instantiate(item.prefab);
+                obj.SetActive(false);
+                objectPool.Enqueue(obj);
+            }
+            poolDictionary.Add(item.enemyType, objectPool);
         }
     }
 
-    // Havuzdan düþman çaðýrmak için bu fonksiyonu kullanacaðýz
-    public GameObject GetEnemy()
+    public GameObject GetEnemy(EnemyType type)
     {
-        if (pool.Count > 0)
+        if (!poolDictionary.ContainsKey(type) || poolDictionary[type].Count == 0)
         {
-            GameObject obj = pool.Dequeue();
-            obj.SetActive(true);
-            return obj;
+            Debug.LogWarning(type + " havuzunda mob kalmadý!");
+            return null;
         }
-        else
-        {
-            // Eðer havuzda hiç düþman kalmadýysa (hepsi sahnedeyse) acil durum olarak yeni üret
-            GameObject obj = Instantiate(enemyPrefab);
-            return obj;
-        }
+
+        GameObject objectToSpawn = poolDictionary[type].Dequeue();
+        objectToSpawn.SetActive(true);
+        return objectToSpawn;
     }
 
-    // Düþman öldüðünde yok etmeyip bu fonksiyonla havuza geri atacaðýz
-    public void ReturnEnemy(GameObject enemy)
+    public void ReturnEnemy(GameObject enemy, EnemyType type)
     {
         enemy.SetActive(false);
-        pool.Enqueue(enemy);
+        if (poolDictionary.ContainsKey(type))
+        {
+            poolDictionary[type].Enqueue(enemy);
+        }
     }
 }

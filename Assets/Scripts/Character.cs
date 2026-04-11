@@ -7,9 +7,6 @@ public class Character : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 10f;
-    [SerializeField] private float gravity = -9.81f;
-    [SerializeField] private float groundCheckDistance = 0.2f;
-    [SerializeField] private LayerMask groundLayerMask = 1;
 
     [Header("Dash Settings")]
     [SerializeField] private float dashSpeed = 15f;
@@ -24,28 +21,22 @@ public class Character : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private GameObject dashEffectPrefab;
 
-    // Components
     private CharacterController characterController;
     private Animator animator;
 
-    // Movement variables
     private Vector3 moveDirection;
     private Vector3 velocity;
     private float currentSpeed;
-    private bool isGrounded;
 
-    // Dash variables
     private bool isDashing = false;
     private bool canDash = true;
     private float dashEndTime;
     private float dashCooldownEndTime;
     private Vector3 dashDirection;
 
-    // Input variables
     private Vector2 joystickInput;
     private bool fireInput;
 
-    // Events for other scripts to subscribe
     public System.Action OnDashStart;
     public System.Action OnDashEnd;
     public System.Action OnFire;
@@ -61,22 +52,16 @@ public class Character : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         animator = GetComponentInChildren<Animator>();
 
-        if (cameraTransform == null)
-            cameraTransform = Camera.main.transform;
-
-        if (movementJoystick == null)
-            Debug.LogError("Movement Joystick is not assigned!");
+        if (cameraTransform == null) cameraTransform = Camera.main.transform;
+        if (movementJoystick == null) Debug.LogError("Joystick atanmamýþ!");
 
         currentSpeed = moveSpeed;
     }
 
     void SetupUIButtons()
     {
-        if (dashButton != null)
-            dashButton.onClick.AddListener(OnDashButtonPressed);
-
-        if (fireButton != null)
-            fireButton.onClick.AddListener(OnFireButtonPressed);
+        if (dashButton != null) dashButton.onClick.AddListener(OnDashButtonPressed);
+        if (fireButton != null) fireButton.onClick.AddListener(OnFireButtonPressed);
     }
 
     void Update()
@@ -86,7 +71,19 @@ public class Character : MonoBehaviour
         if (!isDashing)
         {
             HandleMovement();
-            HandleGravity();
+
+            // Yerçekimi olmadýðý için normalde velocity.y = 0 yapýyorduk.
+            // Ancak animasyon sýrasýnda karakterin ayaklarý yerden kesilirse
+            // isGrounded false olur. Bu durumda hafif bir aþaðý kuvvet uygulayarak
+            // karakteri yere sabitliyoruz. Bu, ateþ ederken oluþan titremeyi engeller.
+            if (!characterController.isGrounded)
+            {
+                velocity.y = -0.5f; // Hafif bir aþaðý kuvvet, anýnda yere yapýþtýrýr.
+            }
+            else
+            {
+                velocity.y = 0f;
+            }
         }
         else
         {
@@ -103,9 +100,7 @@ public class Character : MonoBehaviour
         if (movementJoystick != null)
         {
             joystickInput = new Vector2(movementJoystick.Horizontal, movementJoystick.Vertical);
-
-            if (joystickInput.magnitude > 1f)
-                joystickInput.Normalize();
+            if (joystickInput.magnitude > 1f) joystickInput.Normalize();
         }
     }
 
@@ -116,11 +111,8 @@ public class Character : MonoBehaviour
             Vector3 forward = cameraTransform.forward;
             Vector3 right = cameraTransform.right;
 
-            forward.y = 0;
-            right.y = 0;
-
-            forward.Normalize();
-            right.Normalize();
+            forward.y = 0; right.y = 0;
+            forward.Normalize(); right.Normalize();
 
             moveDirection = (forward * joystickInput.y + right * joystickInput.x).normalized;
 
@@ -137,33 +129,6 @@ public class Character : MonoBehaviour
         }
     }
 
-    void HandleGravity()
-    {
-        isGrounded = characterController.isGrounded || CheckGround();
-
-        if (isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f;
-        }
-        else
-        {
-            velocity.y += gravity * Time.deltaTime;
-        }
-    }
-
-    bool CheckGround()
-    {
-        RaycastHit hit;
-        Vector3 rayStart = transform.position + Vector3.up * 0.1f;
-
-        if (Physics.Raycast(rayStart, Vector3.down, out hit, groundCheckDistance, groundLayerMask))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
     void ApplyMovement()
     {
         characterController.Move(velocity * Time.deltaTime);
@@ -173,9 +138,8 @@ public class Character : MonoBehaviour
     {
         if (animator != null)
         {
-            float speedPercent = joystickInput.magnitude;
-            animator.SetFloat("Speed", speedPercent);
-            animator.SetBool("IsGrounded", isGrounded);
+            animator.SetFloat("Speed", joystickInput.magnitude);
+            animator.SetBool("IsGrounded", characterController.isGrounded); // Gerçek deðeri kullan
             animator.SetBool("IsDashing", isDashing);
         }
     }
@@ -185,25 +149,12 @@ public class Character : MonoBehaviour
         if (!canDash && Time.time >= dashCooldownEndTime)
         {
             canDash = true;
-
-            if (dashButton != null)
-                dashButton.interactable = true;
+            if (dashButton != null) dashButton.interactable = true;
         }
     }
 
-    void OnDashButtonPressed()
-    {
-        if (canDash && !isDashing)
-        {
-            StartDash();
-        }
-    }
-
-    void OnFireButtonPressed()
-    {
-        fireInput = true;
-        HandleFire();
-    }
+    void OnDashButtonPressed() { if (canDash && !isDashing) StartDash(); }
+    void OnFireButtonPressed() { fireInput = true; HandleFire(); }
 
     void StartDash()
     {
@@ -212,42 +163,25 @@ public class Character : MonoBehaviour
         dashEndTime = Time.time + dashDuration;
         dashCooldownEndTime = Time.time + dashCooldown;
 
-        if (joystickInput.magnitude > 0.1f)
-        {
-            dashDirection = moveDirection.normalized;
-        }
-        else
-        {
-            dashDirection = transform.forward;
-        }
+        if (joystickInput.magnitude > 0.1f) dashDirection = moveDirection.normalized;
+        else dashDirection = transform.forward;
 
         velocity.x = dashDirection.x * dashSpeed;
         velocity.z = dashDirection.z * dashSpeed;
 
         StartCoroutine(InvincibilityDuringDash());
 
-        if (dashEffectPrefab != null)
-        {
-            Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
-        }
-
-        if (dashButton != null)
-            dashButton.interactable = false;
+        if (dashEffectPrefab != null) Instantiate(dashEffectPrefab, transform.position, Quaternion.identity);
+        if (dashButton != null) dashButton.interactable = false;
 
         OnDashStart?.Invoke();
     }
 
-    IEnumerator InvincibilityDuringDash()
-    {
-        yield return new WaitForSeconds(dashInvincibilityDuration);
-    }
+    IEnumerator InvincibilityDuringDash() { yield return new WaitForSeconds(dashInvincibilityDuration); }
 
     void HandleDash()
     {
-        if (Time.time >= dashEndTime)
-        {
-            EndDash();
-        }
+        if (Time.time >= dashEndTime) EndDash();
         else
         {
             velocity.x = dashDirection.x * dashSpeed;
@@ -260,10 +194,7 @@ public class Character : MonoBehaviour
     {
         isDashing = false;
         currentSpeed = moveSpeed;
-
-        velocity.x *= 0.5f;
-        velocity.z *= 0.5f;
-
+        velocity.x *= 0.5f; velocity.z *= 0.5f;
         OnDashEnd?.Invoke();
     }
 
@@ -272,18 +203,12 @@ public class Character : MonoBehaviour
         if (fireInput)
         {
             OnFire?.Invoke();
-
             if (animator != null)
             {
-                // RASTGELE ANÝMASYON SEÇÝMÝ: 0, 1 veya 2 döner. 
-                // Animator'da "AttackIndex" (Int) parametresi oluþturmayý unutma!
                 int randomAttack = Random.Range(0, 3);
                 animator.SetInteger("AttackIndex", randomAttack);
                 animator.SetTrigger("Attack");
             }
-
-            
-
             fireInput = false;
         }
     }
@@ -292,12 +217,4 @@ public class Character : MonoBehaviour
     public bool CanDash() { return canDash; }
     public Vector3 GetMoveDirection() { return moveDirection; }
     public float GetMoveSpeed() { return currentSpeed; }
-
-    void OnValidate()
-    {
-        if (dashDuration >= dashCooldown)
-        {
-            Debug.LogWarning("Dash duration should be less than dash cooldown to avoid overlap!");
-        }
-    }
 }
