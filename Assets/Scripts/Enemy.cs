@@ -17,6 +17,9 @@ public class Enemy : MonoBehaviour
     private bool isDead = false;
     private bool isStunned = false;
 
+    // YENÝ: Havuzdan yeni çýktýðýný anlamak için bu bayraðý kullanýyoruz
+    private bool isSpawned = false;
+
     private Transform player;
     private WaveManager waveManager;
     private Animator anim;
@@ -37,13 +40,24 @@ public class Enemy : MonoBehaviour
         isDead = false;
         isStunned = false;
 
+        // YENÝ: Havuzdan her çýktýðýnda doðduðunu unutsun ki boyunu baþtan ölçsün
+        isSpawned = false;
+
         if (anim != null) { anim.Rebind(); anim.Update(0f); }
-        defaultY = transform.position.y;
+
+        // ESKÝ defaultY KODUNU BURADAN SÝLDÝK!
     }
 
     private void Update()
     {
         if (player == null || isDead || isStunned) return;
+
+        // YENÝ: WaveManager onu Spawn Point'e ýþýnladýktan sonraki ÝLK SANÝYEDE boyunu kaydet!
+        if (!isSpawned)
+        {
+            defaultY = transform.position.y;
+            isSpawned = true;
+        }
 
         Vector3 targetPos = new Vector3(player.position.x, transform.position.y, player.position.z);
         float distance = Vector3.Distance(transform.position, targetPos);
