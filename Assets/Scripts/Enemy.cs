@@ -1,32 +1,23 @@
 using UnityEngine;
-using System.Collections;
 
-// YENÝ VE KUSURSUZ SÝSTEM: Mob türleri için açýlýr menü (Ýstediðin kadar ekleyebilirsin)
 public enum EnemyType { Slime, Turtle }
 
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, MeleeWeapon.IDamageable
 {
     [Header("Mob Ayarlarý")]
-    public EnemyType myType; // YAZI YAZMAK YOK! Inspector'dan seçeceksin.
-
+    public EnemyType myType;
     public float maxHealth = 100f;
     public float moveSpeed = 3f;
-    public float damageToPlayer = 10f;
+
     private float currentHealth;
-
     private bool isDead = false;
-    private bool isStunned = false;
-
-    // YENÝ: Havuzdan yeni çýktýðýný anlamak için bu bayraðý kullanýyoruz
-    private bool isSpawned = false;
-
     private Transform player;
-    private WaveManager waveManager;
     private Animator anim;
-    private float defaultY;
+    private WaveManager waveManager;
 
     private void Awake()
     {
+        // Player referansýný bir kere al, Update'te sürekli Find çaðýrma!
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
 
@@ -38,79 +29,54 @@ public class Enemy : MonoBehaviour
     {
         currentHealth = maxHealth;
         isDead = false;
-        isStunned = false;
-
-        // YENÝ: Havuzdan her çýktýðýnda doðduðunu unutsun ki boyunu baþtan ölçsün
-        isSpawned = false;
-
-        if (anim != null) { anim.Rebind(); anim.Update(0f); }
-
-        // ESKÝ defaultY KODUNU BURADAN SÝLDÝK!
+        if (anim != null) anim.SetBool("isMoving", true); // Doðar doðmaz yürümeye baþlasýn
     }
 
     private void Update()
     {
-        if (player == null || isDead || isStunned) return;
+        if (player == null || isDead) return;
 
-        // YENÝ: WaveManager onu Spawn Point'e ýþýnladýktan sonraki ÝLK SANÝYEDE boyunu kaydet!
-        if (!isSpawned)
-        {
-            defaultY = transform.position.y;
-            isSpawned = true;
-        }
+        // Basit Yürüme Mantýðý
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0; // Y ekseninde kayma yapmasýn
 
-        Vector3 targetPos = new Vector3(player.position.x, transform.position.y, player.position.z);
-        float distance = Vector3.Distance(transform.position, targetPos);
-
-        Vector3 direction = targetPos - transform.position;
-        if (direction != Vector3.zero) transform.rotation = Quaternion.LookRotation(direction);
-
-        if (distance > 1.2f)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
-            if (anim != null) anim.SetBool("isMoving", true);
-        }
-        else
-        {
-            if (anim != null) anim.SetBool("isMoving", false);
-        }
-
-        transform.position = new Vector3(transform.position.x, defaultY, transform.position.z);
+        transform.position += direction * moveSpeed * Time.deltaTime;
+        transform.rotation = Quaternion.LookRotation(direction);
     }
 
+    // IDamageable arayüzünden gelen zorunlu metot
     public void TakeDamage(float damage)
     {
         if (isDead) return;
-        currentHealth -= damage;
 
-        if (anim != null) anim.SetTrigger("Hit");
-        StartCoroutine(HitStun());
+        currentHealth -= damage;
 
         if (currentHealth <= 0)
         {
-            isDead = true;
             Die();
         }
     }
 
-    IEnumerator HitStun()
-    {
-        isStunned = true;
-        yield return new WaitForSeconds(0.4f);
-        isStunned = false;
-    }
-
     private void Die()
     {
-        if (anim != null) anim.SetTrigger("Die");
+        isDead = true;
+
+        // Öldüðünde waveManager'a bildir
         if (waveManager != null) waveManager.OnEnemyDefeated();
-        Invoke("ReturnToPool", 2f);
+
+        // Object Pooling: Direkt havuzdan at, Destroy etme!
+        ReturnToPool();
     }
 
     private void ReturnToPool()
     {
-        // Havuza dönerken artýk yazý deðil, kendi menü seçimini (Slime veya Turtle) yolluyor
-        if (EnemyPool.Instance != null) EnemyPool.Instance.ReturnEnemy(this.gameObject, myType);
-        else Destroy(gameObject);
+        if (EnemyPool.Instance != null)
+        {
+            EnemyPool.Instance.ReturnEnemy(this.gameObject, myType);
+        }
+        else
+        {
+            Destroy(gameObject); // Yedek güvenlik önlemi
+        }
     }
 }
