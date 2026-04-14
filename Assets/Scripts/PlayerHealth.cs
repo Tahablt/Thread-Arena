@@ -6,7 +6,7 @@ public class PlayerHealth : MonoBehaviour
 {
     [Header("Ayarlar")]
     public float maxHealth = 100f;
-    private float currentHealth;
+    public float currentHealth; // Dýþarýdan eriþmek için public yaptým
     private bool isDead = false;
 
     [Header("UI")]
@@ -17,7 +17,6 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth = maxHealth;
         UpdateHealthBar();
-
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
     }
 
@@ -27,10 +26,20 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
         UpdateHealthBar();
 
         if (currentHealth <= 0) Die();
+    }
+
+    // --- UpgradeManager'ýn kullandýðý Heal fonksiyonu ---
+    public void Heal(float amount)
+    {
+        if (isDead) return;
+
+        currentHealth += amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        UpdateHealthBar();
+        Debug.Log("Can yenilendi! Mevcut Can: " + currentHealth);
     }
 
     void UpdateHealthBar()

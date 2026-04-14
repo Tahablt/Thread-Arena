@@ -11,6 +11,10 @@ public class PlayerXP : MonoBehaviour
     [Header("UI")]
     public Image xpBarImage;
 
+    // --- EKSÝK OLAN KISIM BURASIYDI ---
+    [Header("Managerlar")]
+    public UpgradeManager upgradeManager;
+
     private void Start()
     {
         UpdateXPBar();
@@ -20,6 +24,7 @@ public class PlayerXP : MonoBehaviour
     {
         currentXP += amount;
 
+        // Seviye atlama kontrolü
         while (currentXP >= xpToNextLevel)
         {
             LevelUp();
@@ -35,6 +40,16 @@ public class PlayerXP : MonoBehaviour
         xpToNextLevel = Mathf.Round(xpToNextLevel * 1.2f);
 
         Debug.Log("LEVEL UP! Yeni Seviye: " + currentLevel);
+
+        // Upgrade menüsünü aç
+        if (upgradeManager != null)
+        {
+            upgradeManager.ShowUpgradeMenu();
+        }
+        else
+        {
+            Debug.LogError("PlayerXP içerisinde UpgradeManager atanmamýþ!");
+        }
     }
 
     void UpdateXPBar()
