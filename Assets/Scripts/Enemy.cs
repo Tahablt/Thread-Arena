@@ -1,43 +1,66 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public enum EnemyType { Slime, Turtle }
 
 public class Enemy : MonoBehaviour, IDamageable
 {
-    [Header("Mob Ayarlarý")]
+    [Header("Mob Ayarlari")]
     public EnemyType myType;
     public float maxHealth = 100f;
     public float moveSpeed = 3f;
-    [Tooltip("Mobun oyuncudan duracaðý mesafe")]
     public float stopDistance = 1.2f;
 
-    [Header("Saldýrý Ayarlarý")]
+    [Header("Saldiri Ayarlari")]
     public float damageToPlayer = 10f;
     public float attackInterval = 1f;
     private float lastAttackTime;
 
-    [Header("XP Ayarlarý")]
-    public GameObject xpPrefab; // Inspector'dan XP prefabini buraya sürükle
+    [Header("XP Ayarlari")]
+    public GameObject xpPrefab;
 
     private float currentHealth;
     private bool isDead = false;
     private Transform player;
+    private PlayerHealth playerHealth;
+    private float stopDistanceSqr;
     private Animator anim;
     private WaveManager waveManager;
+    private Rigidbody rb;
 
     private void Awake()
     {
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null) player = playerObj.transform;
+        if (playerObj != null) 
+        {
+            player = playerObj.transform;
+            playerHealth = playerObj.GetComponentInChildren<PlayerHealth>();
+        }
 
         waveManager = FindFirstObjectByType<WaveManager>();
         anim = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody>();
+        stopDistanceSqr = stopDistance * stopDistance;
+
+        if (rb != null)
+        {
+            rb.mass = 50f;
+            rb.linearDamping = 5f;
+            rb.angularDamping = 5f;
+            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        }
     }
 
     private void OnEnable()
     {
         currentHealth = maxHealth;
         isDead = false;
+        lastAttackTime = 0f; // Yeniden dogdugunda direk vurabilmesini gunceller
+        
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+        }
+
         if (anim != null) anim.SetBool("isMoving", true);
     }
 
@@ -45,14 +68,22 @@ public class Enemy : MonoBehaviour, IDamageable
     {
         if (player == null || isDead) return;
 
-        float distance = Vector3.Distance(transform.position, player.position);
+        float distanceSqr = (player.position - transform.position).sqrMagnitude;
 
-        if (distance > stopDistance)
+        if (distanceSqr > stopDistanceSqr)
         {
-            Vector3 direction = (player.position - transform.position).normalized;
+            Vector3 direction = player.position - transform.position;
             direction.y = 0;
+            direction.Normalize();
 
-            transform.position += direction * moveSpeed * Time.deltaTime;
+            if (rb != null)
+            {
+                rb.linearVelocity = new Vector3(direction.x * moveSpeed, rb.linearVelocity.y, direction.z * moveSpeed);
+            }
+            else
+            {
+                transform.position += direction * moveSpeed * Time.deltaTime;
+            }
 
             if (direction != Vector3.zero)
                 transform.rotation = Quaternion.LookRotation(direction);
@@ -61,22 +92,15 @@ public class Enemy : MonoBehaviour, IDamageable
         }
         else
         {
+            // OYUNCUNUN YANINA GELDI VEYA DEGIYOR, ANINDA HASAR VER
+            if (rb != null) rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
             if (anim != null) anim.SetBool("isMoving", false);
-        }
-    }
 
-    private void OnCollisionStay(Collision collision)
-    {
-        if (isDead) return;
-
-        if (collision.gameObject.CompareTag("Player"))
-        {
             if (Time.time >= lastAttackTime + attackInterval)
             {
-                PlayerHealth health = collision.gameObject.GetComponent<PlayerHealth>();
-                if (health != null)
+                if (playerHealth != null)
                 {
-                    health.TakeDamage(damageToPlayer);
+                    playerHealth.TakeDamage(damageToPlayer);
                     lastAttackTime = Time.time;
                 }
             }
@@ -97,20 +121,15 @@ public class Enemy : MonoBehaviour, IDamageable
 
     private void Die()
     {
-        if (isDead) return; // Çift tetiklenmeyi engelle
+        if (isDead) return;
         isDead = true;
 
-        // 1. ÖNCE XP DOÐUR (Havuzlamadan veya yok etmeden önce!)
+        // Eger karisik XP Pool uyusmazligi veya setup bozuklugu varsa en temiz eski yontemle direk doguruyoruz.
         if (xpPrefab != null)
         {
-            Instantiate(xpPrefab, transform.position, Quaternion.identity);
-        }
-        else
-        {
-            Debug.LogError("DÝKKAT: Enemy scriptinde XP Prefab takýlý deðil!");
+            Instantiate(xpPrefab, new Vector3(transform.position.x, 0.5f, transform.position.z), Quaternion.identity);
         }
 
-        // 2. SONRA DÝÐER ÝÞLEMLER
         if (waveManager != null) waveManager.OnEnemyDefeated();
 
         ReturnToPool();
@@ -128,3 +147,4 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 }
+

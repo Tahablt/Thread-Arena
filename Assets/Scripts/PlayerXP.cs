@@ -1,9 +1,9 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerXP : MonoBehaviour
 {
-    [Header("XP Ayarları")]
+    [Header("XP AyarlarÄ±")]
     public int currentLevel = 1;
     public float currentXP = 0f;
     public float xpToNextLevel = 100f;
@@ -11,20 +11,17 @@ public class PlayerXP : MonoBehaviour
     [Header("UI")]
     public Image xpBarImage;
 
-    // --- EKSİK OLAN KISIM BURASIYDI ---
+    // --- EKSÄ°K OLAN KISIM BURASIYDI ---
     [Header("Managerlar")]
     public UpgradeManager upgradeManager;
 
-    private void Start()
-    {
-        UpdateXPBar();
-    }
+    private void Start() { currentXP = 0f; UpdateXPBar(); }
 
     public void AddXP(float amount)
     {
         currentXP += amount;
 
-        // Seviye atlama kontrolü
+        // Seviye atlama kontrolÃ¼
         while (currentXP >= xpToNextLevel)
         {
             LevelUp();
@@ -41,14 +38,14 @@ public class PlayerXP : MonoBehaviour
 
         Debug.Log("LEVEL UP! Yeni Seviye: " + currentLevel);
 
-        // Upgrade menüsünü aç
+        // Upgrade menÃ¼sÃ¼nÃ¼ aÃ§
         if (upgradeManager != null)
         {
             upgradeManager.ShowUpgradeMenu();
         }
         else
         {
-            Debug.LogError("PlayerXP içerisinde UpgradeManager atanmamış!");
+            Debug.LogError("PlayerXP iÃ§erisinde UpgradeManager atanmamÄ±ÅŸ!");
         }
     }
 

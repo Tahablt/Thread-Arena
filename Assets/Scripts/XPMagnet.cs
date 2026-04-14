@@ -1,33 +1,41 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class XPMagnet : MonoBehaviour
 {
     public float magnetSpeed = 5f;
     private Transform playerTransform;
     private bool isFollowing = false;
+    private float startFollowDistance = 4f; 
 
     private void Start()
     {
-        // Oyuncuyu bul
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) playerTransform = p.transform;
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        if (isFollowing && playerTransform != null)
-        {
-            // Küreyi oyuncuya doðru hareket ettir
-            transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, magnetSpeed * Time.deltaTime);
-        }
+        isFollowing = false;
     }
 
-    // Mýknatýs alanýna girince takip etmeye baþla
-    private void OnTriggerEnter(Collider other)
+    private void Update()
     {
-        if (other.name == "MagnetArea") // Player'ýn içindeki o boþ objenin adý
+        if (playerTransform == null) return;
+
+        if (!isFollowing)
         {
-            isFollowing = true;
+            Vector3 diff = transform.position - playerTransform.position;
+            diff.y = 0; // Yukseklik farkini goz ardi et! Silindirik (2D benzeri) alan olusturur.
+
+            if (diff.sqrMagnitude < startFollowDistance * startFollowDistance)
+            {
+                isFollowing = true;
+            }
+        }
+
+        if (isFollowing)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, magnetSpeed * Time.deltaTime);
         }
     }
 }

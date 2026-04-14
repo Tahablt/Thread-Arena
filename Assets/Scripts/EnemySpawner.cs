@@ -1,11 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [Header("Spawn Ayarlarý")]
-    public float slimeSpawnRate = 2f;  // 2 saniyede bir slime
-    public float rammusSpawnRate = 8f; // 8 saniyede bir rammus
-    public float spawnRadius = 10f;    // Oyuncunun ne kadar uzaðýnda doðacaklar?
+    [Header("Spawn Ayarlari")]
+    public float slimeSpawnRate = 2f;
+    public float rammusSpawnRate = 8f;
+    public float spawnRadius = 10f;
 
     private Transform player;
 
@@ -13,7 +13,6 @@ public class EnemySpawner : MonoBehaviour
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
 
-        // Belirlenen sürelerde sürekli spawn fonksiyonlarýný çaðýrýr
         InvokeRepeating("SpawnSlime", 1f, slimeSpawnRate);
         InvokeRepeating("SpawnRammus", 5f, rammusSpawnRate);
     }
@@ -30,20 +29,22 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemy(EnemyType type)
     {
-        // Senin yazdýðýn EnemyPool'dan düþmaný istiyoruz
+        if (EnemyPool.Instance == null) return;
+        
         GameObject enemy = EnemyPool.Instance.GetEnemy(type);
 
         if (enemy != null)
         {
-            // Oyuncunun etrafýnda rastgele bir konum belirle
             enemy.transform.position = GetRandomSpawnPosition();
         }
     }
 
     Vector3 GetRandomSpawnPosition()
     {
-        // Oyuncunun etrafýnda rastgele bir çember üzerinde nokta seçer
         Vector2 randomPoint = Random.insideUnitCircle.normalized * spawnRadius;
-        return player.position + new Vector3(randomPoint.x, randomPoint.y, 0);
+        // Yari capi belirlerken kati bir Zemin Cizgisi (0) veriyoruz. 
+        // Sayet Raycast ve character merkezi onlari havada kilitliyorsa en kesin cozum Y = 0 demektir.
+        // Eger modelinin pivot'u (merkezi) tam ortasindaysa 0.5f gibi ufak bir offset gerekirse buraya ekle.
+        return new Vector3(player.position.x + randomPoint.x, 0.0f, player.position.z + randomPoint.y);
     }
 }

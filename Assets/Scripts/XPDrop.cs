@@ -1,26 +1,46 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class XPDrop : MonoBehaviour
 {
     public float xpAmount = 20f;
+    public float pickupDistance = 1.5f; // Yari capi biraz daha buyutelim
+    
+    private bool isCollected = false;
+    private Transform playerTransform;
+    private PlayerXP playerXP;
 
-    private void OnTriggerEnter(Collider other)
+    private void Start()
     {
-        // Temas eden objeyi konsola yazdýrýyoruz (hata ayýklamak için)
-        Debug.Log("Çarptýðým þeyin adý: " + other.name);
-
-        if (other.CompareTag("Player"))
+        // Unity'nin Trigger ve Collider celiskilerini sonsuza dek atliyoruz.
+        // Karakteri direkt buluyoruz.
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
         {
-            PlayerXP playerXP = other.GetComponent<PlayerXP>();
+            playerTransform = playerObj.transform;
+            playerXP = playerObj.GetComponentInChildren<PlayerXP>();
+        }
+    }
 
-            if (playerXP != null)
-            {
-                playerXP.AddXP(xpAmount);
-                Debug.Log("XP toplandý: " + xpAmount);
+    private void OnEnable()
+    {
+        isCollected = false;
+    }
 
-                // Küreyi yok et
-                Destroy(gameObject);
-            }
+    private void Update()
+    {
+        if (isCollected || playerTransform == null || playerXP == null) return;
+
+        // X ve Z duzlemindeki gercek mesafeye bak (Y eksenindeki yukseklik farki hataya sebep olmasin!)
+        Vector3 diff = transform.position - playerTransform.position;
+        diff.y = 0; // Yuksekligi sifirla, silindir seklinde bir mesafe Ã¶lcumu!
+
+        float distanceSqr = diff.sqrMagnitude;
+
+        if (distanceSqr <= pickupDistance * pickupDistance)
+        {
+            isCollected = true;
+            playerXP.AddXP(xpAmount);
+            Destroy(gameObject);
         }
     }
 }
