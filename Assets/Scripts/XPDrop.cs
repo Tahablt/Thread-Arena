@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class XPDrop : MonoBehaviour
 {
@@ -9,26 +9,30 @@ public class XPDrop : MonoBehaviour
     private Transform playerTransform;
     private PlayerXP playerXP;
 
-    private void Start()
-    {
-        // Unity'nin Trigger ve Collider celiskilerini sonsuza dek atliyoruz.
-        // Karakteri direkt buluyoruz.
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-        {
-            playerTransform = playerObj.transform;
-            playerXP = playerObj.GetComponentInChildren<PlayerXP>();
-        }
-    }
+    private float spawnTime;
+    public float collectDelay = 0.6f;
 
     private void OnEnable()
     {
         isCollected = false;
+        spawnTime = Time.time;
     }
 
     private void Update()
     {
-        if (isCollected || playerTransform == null || playerXP == null) return;
+        if (isCollected) return;
+        if (Time.time < spawnTime + collectDelay) return;
+
+        if (playerTransform == null || playerXP == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                playerTransform = playerObj.transform;
+                playerXP = playerObj.GetComponentInChildren<PlayerXP>();
+            }
+            if (playerTransform == null || playerXP == null) return;
+        }
 
         // X ve Z duzlemindeki gercek mesafeye bak (Y eksenindeki yukseklik farki hataya sebep olmasin!)
         Vector3 diff = transform.position - playerTransform.position;
@@ -40,7 +44,15 @@ public class XPDrop : MonoBehaviour
         {
             isCollected = true;
             playerXP.AddXP(xpAmount);
-            Destroy(gameObject);
+            
+            if (XPPool.Instance != null)
+            {
+                XPPool.Instance.ReturnXP(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }

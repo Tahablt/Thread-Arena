@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class XPMagnet : MonoBehaviour
 {
@@ -7,20 +7,24 @@ public class XPMagnet : MonoBehaviour
     private bool isFollowing = false;
     private float startFollowDistance = 4f; 
 
-    private void Start()
-    {
-        GameObject p = GameObject.FindGameObjectWithTag("Player");
-        if (p != null) playerTransform = p.transform;
-    }
+    private float spawnTime;
+    public float magnetDelay = 0.4f;
 
     private void OnEnable()
     {
         isFollowing = false;
+        spawnTime = Time.time;
     }
 
     private void Update()
     {
-        if (playerTransform == null) return;
+        if (Time.time < spawnTime + magnetDelay) return;
+        if (playerTransform == null)
+        {
+            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            if (p != null) playerTransform = p.transform;
+            if (playerTransform == null) return;
+        }
 
         if (!isFollowing)
         {

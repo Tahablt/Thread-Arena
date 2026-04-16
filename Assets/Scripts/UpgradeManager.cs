@@ -11,7 +11,7 @@ public class UpgradeManager : MonoBehaviour
 
     [Header("Veri")]
     public PlayerSaveData saveData;
-    public PlayerHealth playerHealth; // Can iksiri i�in referans
+    public PlayerHealth playerHealth; // Can iksiri için referans
 
     private List<ItemData> rastgeleItemler;
 
@@ -26,16 +26,53 @@ public class UpgradeManager : MonoBehaviour
         levelUpPanel.SetActive(true);
 
         rastgeleItemler = new List<ItemData>();
-        int count = DataManager.Instance.tumEsyalar.Count;
+        
+        // Kopyasını alıyoruz ki orijinal listeyi bozmadan içinden çıkarma yapabilelim
+        List<ItemData> availableItems = new List<ItemData>(DataManager.Instance.tumEsyalar);
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < buttons.Length; i++)
         {
-            int randomIndex = Random.Range(0, count);
-            rastgeleItemler.Add(DataManager.Instance.tumEsyalar[randomIndex]);
-
-            if (i < buttons.Length)
+            // Eğer eşya kalmadıysa geri kalan butonları gizle
+            if (availableItems.Count == 0)
             {
-                buttons[i].GetComponentInChildren<TextMeshProUGUI>().text = rastgeleItemler[i].itemName;
+                buttons[i].gameObject.SetActive(false);
+                continue;
+            }
+
+            buttons[i].gameObject.SetActive(true);
+
+            // Rastgele ama FARKLI eşyalar seç (aynı ekranda aynı eşya 2 kere yan yana durmasın)
+            int randomIndex = Random.Range(0, availableItems.Count);
+            ItemData selected = availableItems[randomIndex];
+            rastgeleItemler.Add(selected);
+            availableItems.RemoveAt(randomIndex); // Bir kez çıkanı seçeneklerden kaldır
+
+            // UI YAZILARINI GÜNCELLE
+            TextMeshProUGUI[] texts = buttons[i].GetComponentsInChildren<TextMeshProUGUI>();
+            if (texts.Length > 0) texts[0].text = selected.itemName; // İlk Text her zaman isimdir
+            if (texts.Length > 1) texts[1].text = selected.description; // Varsa ikinci Text'e açıklamayı bas
+
+            // UI İKONUNU GÜNCELLE
+            Image[] images = buttons[i].GetComponentsInChildren<Image>();
+            foreach (Image img in images)
+            {
+                // Butonun kendi arka planı değil de, içindeki (çocuğu olan) boş Image objesini bul
+                if (img.gameObject != buttons[i].gameObject)
+                {
+                    if (selected.icon != null)
+                    {
+                        img.sprite = selected.icon;
+                        img.preserveAspect = true; // RESMİN SÜNMESİNİ VE YAMULMASINI KESİNLİKLE ENGELLER!
+                        img.color = new Color(img.color.r, img.color.g, img.color.b, 1f); // Görünür yap
+                    }
+                    else
+                    {
+                        // Eğer bu eşyanın ikonu Unity'den atanmamışsa, eski kılıç resmi filan kalmasın diye görünmez yap
+                        img.sprite = null;
+                        img.color = new Color(img.color.r, img.color.g, img.color.b, 0f); // Görünmez yap!
+                    }
+                    break;
+                }
             }
         }
     }
@@ -46,13 +83,13 @@ public class UpgradeManager : MonoBehaviour
         {
             ItemData selected = rastgeleItemler[index];
 
-            // 1. Kay�t et
+            // 1. Kayıt et
             saveData.AddItem(selected.id);
 
-            // 2. ETK�Y� TET�KLE
+            // 2. ETKİYİ TETİKLE
             ApplyItemEffect(selected.id);
 
-            Debug.Log("Se�ilen e�ya: " + selected.itemName);
+            Debug.Log("Seçilen eşya: " + selected.itemName);
         }
 
         if (levelUpPanel != null) levelUpPanel.SetActive(false);
@@ -68,21 +105,21 @@ public class UpgradeManager : MonoBehaviour
                 Debug.Log("Can yenilendi!");
                 break;
 
-            case "kilic_01": // K�l�� ID'n
-                // E�er karakterinde bir 'damage' de�i�keni varsa
+            case "kilic_01": // Kılıç ID'n
+                // Eğer karakterinde bir 'damage' değişkeni varsa
                 // FindObjectOfType<PlayerCombat>().damage += 5; 
-                Debug.Log("K�l�� hasar� artt�r�ld�!");
+                Debug.Log("Kılıç hasarı arttırıldı!");
                 break;
 
             case "zone_01": // Zone ID'n
-                // Player'�n alt�ndaki zone objesini bul ve aktif et
+                // Player'ın altındaki zone objesini bul ve aktif et
                 GameObject zone = GameObject.Find("DamageZone");
                 if (zone != null) zone.SetActive(true);
-                Debug.Log("�evre hasar alan� aktif edildi!");
+                Debug.Log("Çevre hasar alanı aktif edildi!");
                 break;
 
             default:
-                Debug.Log("Bu ID i�in hen�z �zellik yaz�lmad�: " + itemId);
+                Debug.Log("Bu ID için henüz özellik yazılmadı: " + itemId);
                 break;
         }
     }

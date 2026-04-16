@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public enum EnemyType { Slime, Turtle }
 
@@ -124,10 +124,25 @@ public class Enemy : MonoBehaviour, IDamageable
         if (isDead) return;
         isDead = true;
 
-        // Eger karisik XP Pool uyusmazligi veya setup bozuklugu varsa en temiz eski yontemle direk doguruyoruz.
-        if (xpPrefab != null)
+        if (XPPool.Instance != null && (xpPrefab != null || XPPool.Instance.xpPrefab != null))
+        {
+            GameObject xp = XPPool.Instance.GetXP(xpPrefab);
+            if (xp != null)
+            {
+                xp.transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z);
+            }
+            else
+            {
+                Debug.LogError("🔴 DIKKAT: XPPool aktif ama dondurecek XP Prefab bulamadi! Unity Editorden Enemy'e ya da XPPool'a prefabini suruklemelisin.");
+            }
+        }
+        else if (xpPrefab != null)
         {
             Instantiate(xpPrefab, new Vector3(transform.position.x, 0.5f, transform.position.z), Quaternion.identity);
+        }
+        else 
+        {
+            Debug.LogError("🔴 DIKKAT: Ne Enemy'de ne de XPPool'da xpPrefab YOK! Editorden suruklemeden xp dusuremezsin.");
         }
 
         if (waveManager != null) waveManager.OnEnemyDefeated();

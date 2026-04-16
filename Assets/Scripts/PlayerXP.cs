@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerXP : MonoBehaviour
@@ -15,7 +15,16 @@ public class PlayerXP : MonoBehaviour
     [Header("Managerlar")]
     public UpgradeManager upgradeManager;
 
-    private void Start() { currentXP = 0f; UpdateXPBar(); }
+    private void Start() 
+    { 
+        if (xpBarImage == null)
+        {
+            Debug.LogError("🔴 DIKKAT: PlayerXP icindeki xpBarImage bos! Lutfen Unity editorunden karakterindeki PlayerXP scriptine UI XP barinin 'DOLAN RENKLI KISMINI (FILL)' surukle! Arka plani eklersen calismaz!");
+        }
+
+        currentXP = 0f; 
+        UpdateXPBar(); 
+    }
 
     public void AddXP(float amount)
     {

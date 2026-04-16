@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea85c058ea8b50e4f9f727148a52ee84, type: 3}
   m_Name: MaxCan
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  id: 
-  itemName: 
-  description: 
+  id: maxcan_01
+  itemName: "Can \u0130ksiri"
+  description: "Can\u0131n\u0131 tazeler"
   rarity: 0
   price: 0
-  icon: {fileID: 0}
+  icon: {fileID: 7654287917567666178, guid: 6eb284054d50a7546948c9f893366c95, type: 3}

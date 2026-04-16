@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class XPPool : MonoBehaviour
@@ -48,11 +48,14 @@ public class XPPool : MonoBehaviour
             InitializePool(fallbackPrefab);
         }
 
-        if (pool.Count > 0)
+        while (pool.Count > 0)
         {
             GameObject xp = pool.Dequeue();
-            xp.SetActive(true);
-            return xp;
+            if (xp != null)
+            {
+                xp.SetActive(true);
+                return xp;
+            }
         }
 
         // Havuz tukendiyse (100 dusman ayni anda öldü vs), sistemi cökertmemek icin manuel yarat.
