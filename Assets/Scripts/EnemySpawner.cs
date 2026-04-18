@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -45,6 +45,6 @@ public class EnemySpawner : MonoBehaviour
         // Yari capi belirlerken kati bir Zemin Cizgisi (0) veriyoruz. 
         // Sayet Raycast ve character merkezi onlari havada kilitliyorsa en kesin cozum Y = 0 demektir.
         // Eger modelinin pivot'u (merkezi) tam ortasindaysa 0.5f gibi ufak bir offset gerekirse buraya ekle.
-        return new Vector3(player.position.x + randomPoint.x, 0.0f, player.position.z + randomPoint.y);
+        return new Vector3(player.position.x + randomPoint.x, 0.5f, player.position.z + randomPoint.y);
     }
 }

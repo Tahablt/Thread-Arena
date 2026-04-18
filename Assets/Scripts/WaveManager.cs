@@ -8,7 +8,7 @@ public class Wave
     public int enemyCount;
     public float spawnRate;
 
-    public EnemyType[] allowedEnemies; // AÇILIR MENÜ LÝSTESÝ
+    public EnemyType[] allowedEnemies; // Aï¿½ILIR MENï¿½ Lï¿½STESï¿½
 }
 
 public class WaveManager : MonoBehaviour
@@ -30,7 +30,7 @@ public class WaveManager : MonoBehaviour
 
         if (currentWaveIndex >= waves.Length)
         {
-            Debug.Log("Tüm dalgalar bitti! Oyuncu Kazandý!");
+            Debug.Log("Tï¿½m dalgalar bitti! Oyuncu Kazandï¿½!");
             yield break;
         }
 
@@ -47,9 +47,7 @@ public class WaveManager : MonoBehaviour
     {
         if (EnemyPool.Instance == null) return;
 
-        // Listeden rastgele seçtiði düþmaný havuza bildiriyor
         EnemyType randomType = currentWave.allowedEnemies[Random.Range(0, currentWave.allowedEnemies.Length)];
-
         GameObject enemy = EnemyPool.Instance.GetEnemy(randomType);
 
         if (enemy == null) return;
@@ -57,7 +55,16 @@ public class WaveManager : MonoBehaviour
         if (spawnPoints != null && spawnPoints.Length > 0)
         {
             Transform randomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            enemy.transform.position = randomSpawnPoint.position;
+            
+            // Dusmanlarin ayni noktada ust uste binmesini ve fizikten dolayi havaya firlamasini engellemek icin offset
+            Vector2 randomSpread = Random.insideUnitCircle * 1.5f;
+
+            // Havadan dusmelerini engellemek icin Y = 0.5f veriyoruz (ayni zamanda yerin icine girip firlamamalari icin)
+            enemy.transform.position = new Vector3(
+                randomSpawnPoint.position.x + randomSpread.x, 
+                0.5f, 
+                randomSpawnPoint.position.z + randomSpread.y
+            );
             enemy.transform.rotation = randomSpawnPoint.rotation;
         }
 
