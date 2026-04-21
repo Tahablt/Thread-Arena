@@ -7,7 +7,7 @@ public class UpgradeManager : MonoBehaviour
 {
     [Header("UI Paneli")]
     public GameObject levelUpPanel;
-    public UpgradeSlot[] slots;
+    public Button[] buttons;
 
     [Header("Veri")]
     public PlayerSaveData saveData;
@@ -22,59 +22,75 @@ public class UpgradeManager : MonoBehaviour
 
     public void ShowUpgradeMenu()
     {
-        // DataManager dan tüm itrm ları getir
-        // Tüm Itm lardan rastgele 3 tane item çek. Bu itemların hepsi birbirinden farklı olmalı
-        // Bu rastgele Itemları spawn et. (Buonlara atamasını yap)
-
         Time.timeScale = 0;
         levelUpPanel.SetActive(true);
 
         rastgeleItemler = new List<ItemData>();
-
+        
         // Kopyasını alıyoruz ki orijinal listeyi bozmadan içinden çıkarma yapabilelim
         List<ItemData> availableItems = new List<ItemData>(DataManager.Instance.tumEsyalar);
 
-        // rastgele 3 item ile liste oluşur
-        for (int i = 0; i < slots.Length; i++)
+        for (int i = 0; i < buttons.Length; i++)
         {
             // Eğer eşya kalmadıysa geri kalan butonları gizle
             if (availableItems.Count == 0)
             {
-                slots[i].gameObject.SetActive(false);
+                buttons[i].gameObject.SetActive(false);
                 continue;
             }
 
-            slots[i].gameObject.SetActive(true);
+            buttons[i].gameObject.SetActive(true);
 
             // Rastgele ama FARKLI eşyalar seç (aynı ekranda aynı eşya 2 kere yan yana durmasın)
             int randomIndex = Random.Range(0, availableItems.Count);
             ItemData selected = availableItems[randomIndex];
             rastgeleItemler.Add(selected);
             availableItems.RemoveAt(randomIndex); // Bir kez çıkanı seçeneklerden kaldır
+
+            // UI YAZILARINI GÜNCELLE
+            TextMeshProUGUI[] texts = buttons[i].GetComponentsInChildren<TextMeshProUGUI>();
+            if (texts.Length > 0) texts[0].text = selected.itemName; // İlk Text her zaman isimdir
+            if (texts.Length > 1) texts[1].text = selected.description; // Varsa ikinci Text'e açıklamayı bas
+
+            // UI İKONUNU GÜNCELLE
+            Image[] images = buttons[i].GetComponentsInChildren<Image>();
+            foreach (Image img in images)
+            {
+                // Butonun kendi arka planı değil de, içindeki (çocuğu olan) boş Image objesini bul
+                if (img.gameObject != buttons[i].gameObject)
+                {
+                    if (selected.icon != null)
+                    {
+                        img.sprite = selected.icon;
+                        img.preserveAspect = true; // RESMİN SÜNMESİNİ VE YAMULMASINI KESİNLİKLE ENGELLER!
+                        img.color = new Color(img.color.r, img.color.g, img.color.b, 1f); // Görünür yap
+                    }
+                    else
+                    {
+                        // Eğer bu eşyanın ikonu Unity'den atanmamışsa, eski kılıç resmi filan kalmasın diye görünmez yap
+                        img.sprite = null;
+                        img.color = new Color(img.color.r, img.color.g, img.color.b, 0f); // Görünmez yap!
+                    }
+                    break;
+                }
+            }
         }
-
-        availableItems = null;
-
-
-        for (int i = 0; i < slots.Length; i++)
-        {
-
-            var selected = rastgeleItemler[i];
-
-            slots[i].Set(selected, () => OnClick_SelectButton(selected));
-        }
-
     }
 
-    public void OnClick_SelectButton(ItemData data)
+    public void OnClick_SelectButton(int index)
     {
+        if (saveData != null && index < rastgeleItemler.Count)
+        {
+            ItemData selected = rastgeleItemler[index];
 
-        // 1. Kayıt et
-        saveData.AddItem(data.id);
+            // 1. Kayıt et
+            saveData.AddItem(selected.id);
 
-        // 2. ETKİYİ TETİKLE
-        ApplyItemEffect(data.id);
+            // 2. ETKİYİ TETİKLE
+            ApplyItemEffect(selected.id);
 
+            Debug.Log("Seçilen eşya: " + selected.itemName);
+        }
 
         if (levelUpPanel != null) levelUpPanel.SetActive(false);
         Time.timeScale = 1;
