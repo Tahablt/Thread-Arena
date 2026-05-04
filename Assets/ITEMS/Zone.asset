@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea85c058ea8b50e4f9f727148a52ee84, type: 3}
   m_Name: Zone
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  id: aura_01
+  id: zone_01
+  itemType: 2
   itemName: Zone
   description: "\xC7evredeki d\xFC\u015Fmanlara hasar verir"
   rarity: 1
-  price: 0
   icon: {fileID: -2494195361460513285, guid: 6eda80b050ad0ff4da2a01397720cc39, type: 3}

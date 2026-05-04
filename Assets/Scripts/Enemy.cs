@@ -30,7 +30,7 @@ public class Enemy : MonoBehaviour, IDamageable
     private void Awake()
     {
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null) 
+        if (playerObj != null)
         {
             player = playerObj.transform;
             playerHealth = playerObj.GetComponentInChildren<PlayerHealth>();
@@ -54,8 +54,8 @@ public class Enemy : MonoBehaviour, IDamageable
     {
         currentHealth = maxHealth;
         isDead = false;
-        lastAttackTime = 0f; // Yeniden dogdugunda direk vurabilmesini gunceller
-        
+        lastAttackTime = 0f;
+
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
@@ -92,7 +92,6 @@ public class Enemy : MonoBehaviour, IDamageable
         }
         else
         {
-            // OYUNCUNUN YANINA GELDI VEYA DEGIYOR, ANINDA HASAR VER
             if (rb != null) rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
             if (anim != null) anim.SetBool("isMoving", false);
 
@@ -124,6 +123,13 @@ public class Enemy : MonoBehaviour, IDamageable
         if (isDead) return;
         isDead = true;
 
+        // --- ÖLDÜRÜLEN MOB SAYISINI ARTIR ---
+        if (KillManager.Instance != null)
+        {
+            KillManager.Instance.AddKill();
+        }
+        // -----------------------------------
+
         if (XPPool.Instance != null && (xpPrefab != null || XPPool.Instance.xpPrefab != null))
         {
             GameObject xp = XPPool.Instance.GetXP(xpPrefab);
@@ -133,16 +139,12 @@ public class Enemy : MonoBehaviour, IDamageable
             }
             else
             {
-                Debug.LogError("🔴 DIKKAT: XPPool aktif ama dondurecek XP Prefab bulamadi! Unity Editorden Enemy'e ya da XPPool'a prefabini suruklemelisin.");
+                Debug.LogError("🔴 DIKKAT: XPPool aktif ama dondurecek XP Prefab bulamadi!");
             }
         }
         else if (xpPrefab != null)
         {
             Instantiate(xpPrefab, new Vector3(transform.position.x, 0.5f, transform.position.z), Quaternion.identity);
-        }
-        else 
-        {
-            Debug.LogError("🔴 DIKKAT: Ne Enemy'de ne de XPPool'da xpPrefab YOK! Editorden suruklemeden xp dusuremezsin.");
         }
 
         if (waveManager != null) waveManager.OnEnemyDefeated();
@@ -162,4 +164,3 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 }
-

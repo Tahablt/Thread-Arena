@@ -14,7 +14,7 @@ public class EnemySpawner : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player").transform;
 
         InvokeRepeating("SpawnSlime", 1f, slimeSpawnRate);
-        InvokeRepeating("SpawnRammus", 5f, rammusSpawnRate);
+        InvokeRepeating("SpawnRammus", 1f, rammusSpawnRate);
     }
 
     void SpawnSlime()

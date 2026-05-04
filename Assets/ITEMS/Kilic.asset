@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea85c058ea8b50e4f9f727148a52ee84, type: 3}
   m_Name: Kilic
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  id: "k\u0131l\u0131\xE7_01"
+  id: kilic_01
   itemName: "K\u0131l\u0131\xE7"
   description: "D\xFC\u015Fmanlar\u0131n i\xE7inden ge\xE7ip bi\xE7er"
   rarity: 0
-  price: 0
-  icon: {fileID: 21300000, guid: 0d2466215334a764c823e7509c27fe11, type: 3}
+  icon: {fileID: 21300000, guid: 800d185abdb574b4a819e24e6abf75f1, type: 3}

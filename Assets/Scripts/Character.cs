@@ -14,6 +14,9 @@ public class Character : MonoBehaviour
     [SerializeField] private float dashCooldown = 1f;
     [SerializeField] private float dashInvincibilityDuration = 0.5f;
 
+    [Header("Combat Settings")]
+    public float attackDamage = 10f; // Dýþarýdan artýrýlabilir hasar
+
     [Header("References")]
     [SerializeField] private FixedJoystick movementJoystick;
     [SerializeField] private Button dashButton;
@@ -64,6 +67,29 @@ public class Character : MonoBehaviour
         if (fireButton != null) fireButton.onClick.AddListener(OnFireButtonPressed);
     }
 
+    // --- UPGRADE FONKSÝYONLARI (UpgradeManager Burayý Çaðýracak) ---
+
+    public void IncreaseDamage(float amount)
+    {
+        attackDamage += amount;
+        Debug.Log("Saldýrý Gücü Arttý: " + attackDamage);
+    }
+
+    public void IncreaseMoveSpeed(float amount)
+    {
+        moveSpeed += amount;
+        currentSpeed = moveSpeed; // Anlýk hýzý da güncelle
+        Debug.Log("Hareket Hýzý Arttý: " + moveSpeed);
+    }
+
+    public void ReduceDashCooldown(float amount)
+    {
+        dashCooldown = Mathf.Max(0.2f, dashCooldown - amount); // 0.2 saniyenin altýna düþmesin
+        Debug.Log("Dash Bekleme Süresi Azaldý: " + dashCooldown);
+    }
+
+    // -------------------------------------------------------------
+
     void Update()
     {
         HandleInput();
@@ -72,13 +98,9 @@ public class Character : MonoBehaviour
         {
             HandleMovement();
 
-            // Yerçekimi olmadýðý için normalde velocity.y = 0 yapýyorduk.
-            // Ancak animasyon sýrasýnda karakterin ayaklarý yerden kesilirse
-            // isGrounded false olur. Bu durumda hafif bir aþaðý kuvvet uygulayarak
-            // karakteri yere sabitliyoruz. Bu, ateþ ederken oluþan titremeyi engeller.
             if (!characterController.isGrounded)
             {
-                velocity.y = -0.5f; // Hafif bir aþaðý kuvvet, anýnda yere yapýþtýrýr.
+                velocity.y = -0.5f;
             }
             else
             {
@@ -139,7 +161,7 @@ public class Character : MonoBehaviour
         if (animator != null)
         {
             animator.SetFloat("Speed", joystickInput.magnitude);
-            animator.SetBool("IsGrounded", characterController.isGrounded); // Gerçek deðeri kullan
+            animator.SetBool("IsGrounded", characterController.isGrounded);
             animator.SetBool("IsDashing", isDashing);
         }
     }
