@@ -35,5 +35,6 @@ amaçlanmıştır.
 - V1.3 – FPS counter UI eklendi  
 - V1.4 – Animator ve karakter animasyonları entegre edildi
 - V1.5 - Particle System vs. eklendi
-
+- V1.6 - AI Moblar eklendi
+- V1.7 - Level Up UI vs. eklendi 
 
