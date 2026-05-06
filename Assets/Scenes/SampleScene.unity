@@ -7175,9 +7175,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Kesilen Mob :
-
-'
+  m_text: 'Kills :'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7288,14 +7286,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveManager
   waves:
-  - waveName: asd
-    enemyCount: 50
-    spawnRate: 1
+  - waveName: Turtle
+    enemyCount: 9999
+    spawnRate: 2
+    allowedEnemies: 01000000
+  - waveName: Slime
+    enemyCount: 9999
+    spawnRate: 2
     allowedEnemies: 00000000
-  - waveName: asd
-    enemyCount: 50
-    spawnRate: 1
-    allowedEnemies: 010000000100000001000000
   spawnPoints:
   - {fileID: 2142547290}
   - {fileID: 1593780608}
@@ -7316,10 +7314,10 @@ MonoBehaviour:
   poolItems:
   - enemyType: 0
     prefab: {fileID: 1741867076}
-    poolSize: 50
+    poolSize: 300
   - enemyType: 1
     prefab: {fileID: 834409788}
-    poolSize: 50
+    poolSize: 300
 --- !u!4 &404405374
 Transform:
   m_ObjectHideFlags: 0
@@ -7370,13 +7368,13 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
-    m_NearPlane: 0.2
+    m_NearPlane: 3.86
     m_CullingMatrixOverride:
       e00: 1
       e01: 0
@@ -7450,7 +7448,7 @@ MonoBehaviour:
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 1
+  m_SoftShadowQuality: 3
   m_RenderingLayersMask:
     serializedVersion: 0
     m_Bits: 1
@@ -8724,7 +8722,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54b8a3fcd06a1c146abe214cfe367e95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  myType: 0
+  myType: 1
   maxHealth: 100
   moveSpeed: 3
   stopDistance: 1.5
