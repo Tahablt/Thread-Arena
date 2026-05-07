@@ -31,7 +31,6 @@ public class UpgradeManager : MonoBehaviour
 
         for (int i = 0; i < cards.Length; i++)
         {
-
             int randomIndex = Random.Range(0, availableItems.Count);
             ItemData selected = availableItems[randomIndex];
             rastgeleItemler.Add(selected);
@@ -57,7 +56,6 @@ public class UpgradeManager : MonoBehaviour
             playerCharacter = FindFirstObjectByType<Character>();
         }
 
-
         switch (type)
         {
             case ItemTypes.Health:
@@ -65,37 +63,49 @@ public class UpgradeManager : MonoBehaviour
                 break;
 
             case ItemTypes.Sword:
+                // Kılıç hasarını artır (Kılıç zaten elde duruyor)
                 if (playerCharacter != null) playerCharacter.IncreaseDamage(5f);
                 break;
 
-            case ItemTypes.Zone: // Eğer ScriptableObject'te ID "zone_01" ise buraya da girer
-                // Karakterin altındaki AuraWeapon scriptini (Kapalı olsa bile) bulur
+            case ItemTypes.Zone:
+                // AuraWeapon scriptini bul ve aktif et/geliştir
                 AuraWeapon aura = playerCharacter.GetComponentInChildren<AuraWeapon>(true);
-
                 if (aura != null)
                 {
-                    if (!aura.gameObject.activeSelf)
+                    if (!aura.gameObject.activeSelf) aura.gameObject.SetActive(true);
+                    else { aura.IncreaseRange(0.5f); aura.damage += 2f; }
+                }
+                break;
+
+            case ItemTypes.Bow:
+                // Megabonk Mantığı: Kılıç durur, Ok sistemi ek yetenek olarak açılır
+                // Karakterin üzerinde "BowSystem" adında bir script olduğunu varsayıyoruz
+                BowSystem bow = playerCharacter.GetComponentInChildren<BowSystem>(true);
+
+                if (bow != null)
+                {
+                    if (!bow.gameObject.activeSelf)
                     {
-                        // İlk alımda objeyi aç
-                        aura.gameObject.SetActive(true);
-                        Debug.Log("Aura Silahı İlk Kez Aktif Edildi!");
+                        // İlk alımda ok sistemini çalıştır (otomatik ateş etmeye başlar)
+                        bow.gameObject.SetActive(true);
+                        Debug.Log("Ok Sistemi Aktif Edildi! Otomatik ateş başlıyor.");
                     }
                     else
                     {
-                        // Sonraki alımlarda geliştir
-                        aura.IncreaseRange(0.5f);
-                        aura.damage += 2f;
-                        Debug.Log("Aura Menzili ve Hasarı Artırıldı!");
+                        // Tekrar seçilirse okların hızını veya hasarını artır
+                        bow.fireRate -= 0.1f; // Daha hızlı ateş et
+                        bow.arrowDamage += 3f; // Daha çok hasar ver
+                        Debug.Log("Ok Atış Hızı ve Hasarı Geliştirildi!");
                     }
                 }
                 else
                 {
-                    Debug.LogError("HATA: Karakterin altında AuraWeapon scripti (DamageZone) bulunamadı!");
+                    Debug.LogError("HATA: Karakterin altında BowSystem (Ok Atma Scripti) bulunamadı!");
                 }
                 break;
 
             default:
-                Debug.Log("Bu ID için henüz özellik yazılmadı: ");
+                Debug.Log("Bu tür için özellik tanımlanmadı: " + type.ToString());
                 break;
         }
     }

@@ -12,7 +12,8 @@ public enum ItemTypes // Eþyalarýn nadirlik dereceleri
 {
    Sword,
    Health,
-   Zone
+   Zone,
+   Bow
 }
 
 [CreateAssetMenu(fileName = "YeniItem", menuName = "Envanter/Item")]
