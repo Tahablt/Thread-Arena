@@ -1,7 +1,9 @@
 # Unity Arcade / Casual Game 
 
 Bu proje, tek başıma geliştirdiğim bir Unity Arcade / Casual Game prototipidir. Amacım fizik tabanlı mobil oyun mekaniklerini uygulamak, oyun kontrollerini ve kullanıcı arayüzünü tasarlayarak oyun geliştirme becerilerimi geliştirmektir.
-NOT: UNİTYDE SIKINTI ÇIKTIĞI İÇİN YENİ PROJE AÇIP DEVAM EDİYORUM..
+
+
+NOT: UNİTY PROJEMDE SIKINTI ÇIKTIĞI İÇİN YENİ PROJE AÇIP DEVAM EDİYORUM..
 
 ## Features
 
